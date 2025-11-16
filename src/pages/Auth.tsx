@@ -69,6 +69,7 @@ export default function Auth() {
   };
 
   const handleBackClick = () => {
+    console.log('Back button clicked - starting bubble animation');
     setShowBubbles(true);
     
     // Generate 30+ bubbles across the entire screen with varied properties
@@ -86,6 +87,7 @@ export default function Auth() {
       },
     }));
     setBubbles(newBubbles);
+    console.log('Generated bubbles:', newBubbles.length);
     
     // Navigate after animation completes
     setTimeout(() => {
@@ -114,11 +116,12 @@ export default function Auth() {
       <AnimatePresence>
         {showBubbles && (
           <motion.div
-            className="fixed inset-0 z-40 pointer-events-none overflow-hidden"
+            className="fixed inset-0 z-40 pointer-events-none"
+            style={{ overflow: 'visible' }}
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            transition={{ duration: 0.5 }}
+            transition={{ duration: 0.3 }}
           >
             {bubbles.map((bubble) => (
               <motion.div
@@ -128,55 +131,68 @@ export default function Auth() {
                   width: `${bubble.size}px`,
                   height: `${bubble.size}px`,
                   left: `${bubble.x}%`,
+                  top: '100%',
                   background: `radial-gradient(circle at 35% 35%, 
-                    rgba(255, 255, 255, ${bubble.opacity * 0.9}), 
-                    hsla(var(--primary), ${bubble.opacity * 0.7}), 
-                    hsla(var(--secondary), ${bubble.opacity * 0.4}))`,
+                    rgba(255, 255, 255, ${bubble.opacity * 1}), 
+                    hsl(217 91% 60% / ${bubble.opacity * 0.8}), 
+                    hsl(271 91% 65% / ${bubble.opacity * 0.6}))`,
                   boxShadow: `
-                    inset -3px -3px 8px rgba(0, 0, 0, 0.1),
-                    0 0 ${bubble.size * 0.5}px hsla(var(--primary), ${bubble.opacity * 0.4}),
-                    0 ${bubble.size * 0.3}px ${bubble.size * 0.6}px hsla(var(--primary), ${bubble.opacity * 0.2})
+                    inset -4px -4px 12px rgba(0, 0, 0, 0.15),
+                    0 0 ${bubble.size * 0.8}px hsl(217 91% 60% / ${bubble.opacity * 0.6}),
+                    0 ${bubble.size * 0.4}px ${bubble.size * 0.8}px hsl(217 91% 60% / ${bubble.opacity * 0.3})
                   `,
-                  filter: `blur(${bubble.size > 60 ? 1 : 0}px)`,
+                  filter: `blur(${bubble.size > 70 ? 2 : 0}px)`,
+                  transform: 'translate(-50%, 0)',
                 }}
                 initial={{ 
-                  y: `${bubble.y}vh`, 
+                  y: 0,
                   x: 0,
                   scale: 0,
                   opacity: 0,
                 }}
                 animate={{
-                  y: `${bubble.direction.y}vh`,
-                  x: bubble.direction.x,
-                  scale: [0, 1, 0.95, 1],
-                  opacity: [0, bubble.opacity, bubble.opacity, 0],
-                  rotate: [0, 360],
+                  y: bubble.direction.y * 10,
+                  x: bubble.direction.x * 2,
+                  scale: [0, 1.1, 1],
+                  opacity: [0, bubble.opacity * 1.2, bubble.opacity, 0],
+                  rotate: [0, bubble.direction.x > 0 ? 180 : -180],
                 }}
                 transition={{
                   duration: bubble.duration,
                   delay: bubble.delay,
-                  ease: [0.25, 0.46, 0.45, 0.94], // Smooth easing
+                  ease: [0.16, 1, 0.3, 1],
                   opacity: {
-                    times: [0, 0.1, 0.8, 1],
+                    times: [0, 0.15, 0.7, 1],
                   },
                 }}
               >
                 {/* Inner highlight for glossy effect */}
                 <div 
-                  className="absolute rounded-full bg-gradient-to-br from-white/50 to-transparent"
+                  className="absolute rounded-full bg-gradient-to-br from-white/60 to-transparent"
                   style={{ 
-                    width: `${bubble.size * 0.4}px`,
-                    height: `${bubble.size * 0.4}px`,
+                    width: `${bubble.size * 0.45}px`,
+                    height: `${bubble.size * 0.45}px`,
+                    top: `${bubble.size * 0.1}px`,
+                    left: `${bubble.size * 0.1}px`,
+                    filter: 'blur(3px)',
+                  }} 
+                />
+                {/* Secondary highlight */}
+                <div 
+                  className="absolute rounded-full bg-white/30"
+                  style={{ 
+                    width: `${bubble.size * 0.2}px`,
+                    height: `${bubble.size * 0.2}px`,
                     top: `${bubble.size * 0.15}px`,
                     left: `${bubble.size * 0.15}px`,
-                    filter: 'blur(2px)',
+                    filter: 'blur(1px)',
                   }} 
                 />
                 {/* Outer glow ring */}
                 <div 
                   className="absolute inset-0 rounded-full"
                   style={{ 
-                    boxShadow: `0 0 ${bubble.size * 0.3}px ${bubble.size * 0.15}px hsla(var(--primary), ${bubble.opacity * 0.3})`,
+                    boxShadow: `0 0 ${bubble.size * 0.5}px ${bubble.size * 0.2}px hsl(217 91% 60% / ${bubble.opacity * 0.4})`,
                   }} 
                 />
               </motion.div>
