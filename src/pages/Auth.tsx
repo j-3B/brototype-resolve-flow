@@ -15,7 +15,16 @@ export default function Auth() {
   const { signIn, signUp, user } = useAuth();
   const [isLoading, setIsLoading] = useState(false);
   const [showBubbles, setShowBubbles] = useState(false);
-  const [bubbles, setBubbles] = useState<Array<{ id: number; x: number; y: number }>>([]);
+  const [bubbles, setBubbles] = useState<Array<{ 
+    id: number; 
+    x: number; 
+    y: number; 
+    size: number; 
+    duration: number; 
+    delay: number;
+    opacity: number;
+    direction: { x: number; y: number };
+  }>>([]);
   
   // Sign in state
   const [signInEmail, setSignInEmail] = useState('');
@@ -62,18 +71,26 @@ export default function Auth() {
   const handleBackClick = () => {
     setShowBubbles(true);
     
-    // Generate random bubbles
-    const newBubbles = Array.from({ length: 12 }, (_, i) => ({
+    // Generate 30+ bubbles across the entire screen with varied properties
+    const newBubbles = Array.from({ length: 35 }, (_, i) => ({
       id: i,
-      x: Math.random() * 100 - 50,
-      y: Math.random() * 100 - 50,
+      x: Math.random() * 100, // 0-100% across screen width
+      y: 100 + Math.random() * 20, // Start below viewport
+      size: 20 + Math.random() * 80, // 20px to 100px
+      duration: 3 + Math.random() * 4, // 3-7 seconds for slow motion
+      delay: Math.random() * 1, // Staggered start
+      opacity: 0.3 + Math.random() * 0.4, // 0.3 to 0.7 opacity
+      direction: {
+        x: (Math.random() - 0.5) * 30, // Slight horizontal drift
+        y: -120 - Math.random() * 50, // Float upward varying speeds
+      },
     }));
     setBubbles(newBubbles);
     
-    // Navigate after animation
+    // Navigate after animation completes
     setTimeout(() => {
       navigate('/');
-    }, 800);
+    }, 2500);
   };
 
   return (
@@ -93,33 +110,79 @@ export default function Auth() {
         <ArrowLeft className="w-6 h-6 text-white relative z-10 transition-transform group-hover:-translate-x-1" />
       </motion.button>
 
-      {/* Floating Bubbles Animation */}
+      {/* Full-Screen Cinematic Bubble Animation */}
       <AnimatePresence>
-        {showBubbles && bubbles.map((bubble) => (
+        {showBubbles && (
           <motion.div
-            key={bubble.id}
-            className="absolute w-8 h-8 rounded-full pointer-events-none"
-            style={{
-              background: "radial-gradient(circle at 30% 30%, rgba(255,255,255,0.8), hsl(var(--primary) / 0.6))",
-              boxShadow: "inset -2px -2px 4px rgba(0,0,0,0.1), 0 4px 8px hsl(var(--primary) / 0.3)",
-              left: '50%',
-              top: '50%',
-            }}
-            initial={{ scale: 0, x: 0, y: 0, opacity: 1 }}
-            animate={{
-              scale: [0, 1.5, 0],
-              x: bubble.x * 3,
-              y: bubble.y * 3,
-              opacity: [1, 1, 0],
-            }}
-            transition={{
-              duration: 0.8,
-              ease: [0.34, 1.56, 0.64, 1],
-            }}
+            className="fixed inset-0 z-40 pointer-events-none overflow-hidden"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            transition={{ duration: 0.5 }}
           >
-            <div className="absolute inset-0 rounded-full bg-gradient-to-br from-white/40 to-transparent" style={{ clipPath: 'circle(30% at 25% 25%)' }} />
+            {bubbles.map((bubble) => (
+              <motion.div
+                key={bubble.id}
+                className="absolute rounded-full pointer-events-none"
+                style={{
+                  width: `${bubble.size}px`,
+                  height: `${bubble.size}px`,
+                  left: `${bubble.x}%`,
+                  background: `radial-gradient(circle at 35% 35%, 
+                    rgba(255, 255, 255, ${bubble.opacity * 0.9}), 
+                    hsla(var(--primary), ${bubble.opacity * 0.7}), 
+                    hsla(var(--secondary), ${bubble.opacity * 0.4}))`,
+                  boxShadow: `
+                    inset -3px -3px 8px rgba(0, 0, 0, 0.1),
+                    0 0 ${bubble.size * 0.5}px hsla(var(--primary), ${bubble.opacity * 0.4}),
+                    0 ${bubble.size * 0.3}px ${bubble.size * 0.6}px hsla(var(--primary), ${bubble.opacity * 0.2})
+                  `,
+                  filter: `blur(${bubble.size > 60 ? 1 : 0}px)`,
+                }}
+                initial={{ 
+                  y: `${bubble.y}vh`, 
+                  x: 0,
+                  scale: 0,
+                  opacity: 0,
+                }}
+                animate={{
+                  y: `${bubble.direction.y}vh`,
+                  x: bubble.direction.x,
+                  scale: [0, 1, 0.95, 1],
+                  opacity: [0, bubble.opacity, bubble.opacity, 0],
+                  rotate: [0, 360],
+                }}
+                transition={{
+                  duration: bubble.duration,
+                  delay: bubble.delay,
+                  ease: [0.25, 0.46, 0.45, 0.94], // Smooth easing
+                  opacity: {
+                    times: [0, 0.1, 0.8, 1],
+                  },
+                }}
+              >
+                {/* Inner highlight for glossy effect */}
+                <div 
+                  className="absolute rounded-full bg-gradient-to-br from-white/50 to-transparent"
+                  style={{ 
+                    width: `${bubble.size * 0.4}px`,
+                    height: `${bubble.size * 0.4}px`,
+                    top: `${bubble.size * 0.15}px`,
+                    left: `${bubble.size * 0.15}px`,
+                    filter: 'blur(2px)',
+                  }} 
+                />
+                {/* Outer glow ring */}
+                <div 
+                  className="absolute inset-0 rounded-full"
+                  style={{ 
+                    boxShadow: `0 0 ${bubble.size * 0.3}px ${bubble.size * 0.15}px hsla(var(--primary), ${bubble.opacity * 0.3})`,
+                  }} 
+                />
+              </motion.div>
+            ))}
           </motion.div>
-        ))}
+        )}
       </AnimatePresence>
       <Card className="w-full max-w-md shadow-xl">
         <CardHeader className="space-y-1">
