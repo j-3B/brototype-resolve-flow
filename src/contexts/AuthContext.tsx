@@ -32,6 +32,19 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Optimized: Fetch profile immediately on session
+    const fetchProfile = async (userId: string) => {
+      const { data: profileData } = await supabase
+        .from('profiles')
+        .select('*')
+        .eq('id', userId)
+        .single();
+      
+      if (profileData) {
+        setProfile(profileData as Profile);
+      }
+    };
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
@@ -39,39 +52,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Fetch profile asynchronously
-          setTimeout(async () => {
-            const { data: profileData } = await supabase
-              .from('profiles')
-              .select('*')
-              .eq('id', session.user.id)
-              .single();
-            
-            if (profileData) {
-              setProfile(profileData as Profile);
-            }
-          }, 0);
+          fetchProfile(session.user.id);
         } else {
           setProfile(null);
         }
       }
     );
 
-    // Check for existing session
+    // Check for existing session - optimized
     supabase.auth.getSession().then(async ({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
       
       if (session?.user) {
-        const { data: profileData } = await supabase
-          .from('profiles')
-          .select('*')
-          .eq('id', session.user.id)
-          .single();
-        
-        if (profileData) {
-          setProfile(profileData as Profile);
-        }
+        await fetchProfile(session.user.id);
       }
       setLoading(false);
     });
