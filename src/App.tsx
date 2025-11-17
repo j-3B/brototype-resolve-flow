@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
+import BackgroundBubbles from "@/components/common/BackgroundBubbles";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import Dashboard from "./pages/Dashboard";
@@ -13,7 +14,17 @@ import ComplaintList from "./pages/ComplaintList";
 import ComplaintDetail from "./pages/ComplaintDetail";
 import NotFound from "./pages/NotFound";
 
-const queryClient = new QueryClient();
+// Optimized QueryClient with better defaults
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 60000, // 1 minute
+      gcTime: 300000, // 5 minutes
+      refetchOnWindowFocus: false,
+      retry: 1,
+    },
+  },
+});
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
@@ -22,6 +33,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <AuthProvider>
+          <BackgroundBubbles />
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
