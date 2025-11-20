@@ -7,7 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ArrowLeft, Send } from 'lucide-react';
+import { ArrowLeft, Send, Download, FileIcon } from 'lucide-react';
 import { format } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -37,12 +37,21 @@ interface Message {
   };
 }
 
+interface Attachment {
+  id: string;
+  file_path: string;
+  original_name: string;
+  file_size: number;
+  uploaded_at: string;
+}
+
 export default function ComplaintDetail() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { profile } = useAuth();
   const [complaint, setComplaint] = useState<Complaint | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
+  const [attachments, setAttachments] = useState<Attachment[]>([]);
   const [newMessage, setNewMessage] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
@@ -51,6 +60,7 @@ export default function ComplaintDetail() {
     if (id) {
       fetchComplaint();
       fetchMessages();
+      fetchAttachments();
       subscribeToMessages();
     }
   }, [id]);
@@ -95,6 +105,47 @@ export default function ComplaintDetail() {
       setMessages(data || []);
     } catch (error) {
       console.error('Error fetching messages:', error);
+    }
+  };
+
+  const fetchAttachments = async () => {
+    if (!id) return;
+
+    try {
+      const { data, error } = await supabase
+        .from('complaint_attachments')
+        .select('*')
+        .eq('complaint_id', id)
+        .order('uploaded_at', { ascending: true });
+
+      if (error) throw error;
+      setAttachments(data || []);
+    } catch (error) {
+      console.error('Error fetching attachments:', error);
+    }
+  };
+
+  const downloadAttachment = async (attachment: Attachment) => {
+    try {
+      const { data, error } = await supabase.storage
+        .from('complaint-attachments')
+        .download(attachment.file_path);
+
+      if (error) throw error;
+
+      const url = URL.createObjectURL(data);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = attachment.original_name;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      toast.success('File downloaded successfully');
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      toast.error('Failed to download file');
     }
   };
 
@@ -234,6 +285,40 @@ export default function ComplaintDetail() {
               <h3 className="font-semibold mb-2">Description</h3>
               <p className="text-muted-foreground whitespace-pre-wrap">{complaint.description}</p>
             </div>
+
+            {attachments.length > 0 && (
+              <div className="pt-4 border-t">
+                <h3 className="font-semibold mb-3">Attachments</h3>
+                <div className="space-y-2">
+                  {attachments.map((attachment) => (
+                    <div 
+                      key={attachment.id}
+                      className="flex items-center justify-between rounded-lg border border-border bg-muted/30 p-3 hover:bg-muted/50 transition-colors"
+                    >
+                      <div className="flex items-center gap-3">
+                        <FileIcon className="h-5 w-5 text-primary" />
+                        <div>
+                          <p className="text-sm font-medium">{attachment.original_name}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {(attachment.file_size / 1024 / 1024).toFixed(2)} MB • 
+                            {' '}{format(new Date(attachment.uploaded_at), 'PPp')}
+                          </p>
+                        </div>
+                      </div>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => downloadAttachment(attachment)}
+                        className="gap-2"
+                      >
+                        <Download className="h-4 w-4" />
+                        Download
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
 
             {profile?.role !== 'student' && (
               <div className="pt-4 border-t">
