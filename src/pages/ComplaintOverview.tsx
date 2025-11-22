@@ -6,7 +6,6 @@ import { Button } from '@/components/ui/button';
 import { ArrowLeft } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import RotatingQuote from '@/components/RotatingQuote';
 
 interface ComplaintStats {
   open: number;
@@ -110,14 +109,6 @@ export default function ComplaintOverview() {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-card via-card/95 to-accent/10">
-          <CardHeader>
-            <CardTitle className="text-center text-primary">Daily Inspiration</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <RotatingQuote />
-          </CardContent>
-        </Card>
       </main>
     </div>
   );
