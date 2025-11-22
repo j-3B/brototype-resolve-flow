@@ -360,7 +360,7 @@ export default function ComplaintDetail() {
                     }`}
                   >
                     <div className="flex items-start justify-between mb-2">
-                      <span className="font-semibold text-sm">{message.profiles.name}</span>
+                      <span className="font-semibold text-sm">{message.profiles?.name || 'User'}</span>
                       <span className="text-xs text-muted-foreground">
                         {format(new Date(message.created_at), 'PPp')}
                       </span>
