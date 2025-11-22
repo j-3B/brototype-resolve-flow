@@ -3,7 +3,7 @@ import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { FileText, Clock, CheckCircle, AlertCircle, Plus } from 'lucide-react';
+import { FileText, Clock, CheckCircle, AlertCircle, Plus, BarChart3 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
 
@@ -90,14 +90,22 @@ export default function Dashboard() {
       <main className="container mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
           <h2 className="text-3xl font-bold">Dashboard</h2>
-          {profile?.role === 'student' && (
-            <Link to="/complaints/new">
-              <Button className="gap-2">
-                <Plus className="h-4 w-4" />
-                New Complaint
+          <div className="flex gap-2">
+            <Link to="/overview">
+              <Button variant="outline" className="gap-2">
+                <BarChart3 className="h-4 w-4" />
+                View Overview
               </Button>
             </Link>
-          )}
+            {profile?.role === 'student' && (
+              <Link to="/complaints/new">
+                <Button className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  New Complaint
+                </Button>
+              </Link>
+            )}
+          </div>
         </div>
 
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">

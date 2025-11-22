@@ -12,6 +12,7 @@ import Dashboard from "./pages/Dashboard";
 import ComplaintForm from "./pages/ComplaintForm";
 import ComplaintList from "./pages/ComplaintList";
 import ComplaintDetail from "./pages/ComplaintDetail";
+import ComplaintOverview from "./pages/ComplaintOverview";
 import NotFound from "./pages/NotFound";
 
 // Optimized QueryClient with better defaults
@@ -66,6 +67,14 @@ const App = () => (
               element={
                 <ProtectedRoute>
                   <ComplaintDetail />
+                </ProtectedRoute>
+              }
+            />
+            <Route
+              path="/overview"
+              element={
+                <ProtectedRoute>
+                  <ComplaintOverview />
                 </ProtectedRoute>
               }
             />
