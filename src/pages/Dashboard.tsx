@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { FileText, Clock, CheckCircle, AlertCircle, Plus, BarChart3 } from 'lucide-react';
 import { Link } from 'react-router-dom';
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import RotatingQuote from '@/components/RotatingQuote';
 
 interface ComplaintStats {
   open: number;
@@ -55,11 +55,6 @@ export default function Dashboard() {
     }
   };
 
-  const chartData = [
-    { name: 'Open', value: stats.open },
-    { name: 'In Progress', value: stats.in_progress },
-    { name: 'Resolved', value: stats.resolved },
-  ];
 
   if (loading) {
     return (
@@ -150,20 +145,14 @@ export default function Dashboard() {
           </Card>
         </div>
 
-        <Card>
+        <Card className="bg-gradient-to-br from-primary/5 via-accent/5 to-secondary/5 border-2 border-primary/20 shadow-lg">
           <CardHeader>
-            <CardTitle>Complaints Overview</CardTitle>
+            <CardTitle className="text-center text-2xl bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+              Daily Inspiration
+            </CardTitle>
           </CardHeader>
           <CardContent>
-            <ResponsiveContainer width="100%" height={300}>
-              <BarChart data={chartData}>
-                <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="name" />
-                <YAxis />
-                <Tooltip />
-                <Bar dataKey="value" fill="hsl(var(--primary))" />
-              </BarChart>
-            </ResponsiveContainer>
+            <RotatingQuote />
           </CardContent>
         </Card>
 
