@@ -1,7 +1,9 @@
-import { useEffect, useRef, useState } from 'react';
+import { useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 import { ArrowLeft } from 'lucide-react';
+import { useBubbleBurst } from '@/hooks/useBubbleBurst';
+import BubbleBurst from './BubbleBurst';
 
 interface BubbleBackButtonProps {
   to?: string;
@@ -10,56 +12,12 @@ interface BubbleBackButtonProps {
 export default function BubbleBackButton({ to = '/' }: BubbleBackButtonProps) {
   const navigate = useNavigate();
   const buttonRef = useRef<HTMLButtonElement>(null);
-  const navTimerRef = useRef<number | null>(null);
-
-  const prefersReducedMotion =
-    typeof window !== 'undefined' &&
-    typeof window.matchMedia === 'function' &&
-    window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-
-  const [origin, setOrigin] = useState<{ x: number; y: number }>({ x: 0, y: 0 });
-  const [showBurst, setShowBurst] = useState(false);
-  const [burstBubbles, setBurstBubbles] = useState<Array<{
-    id: number;
-    angle: number;
-    distance: number;
-    size: number;
-    duration: number;
-  }>>([]);
-
-  useEffect(() => {
-    return () => {
-      if (navTimerRef.current) window.clearTimeout(navTimerRef.current);
-    };
-  }, []);
+  const { origin, showBurst, burstBubbles, triggerBurst } = useBubbleBurst();
 
   const handleClick = () => {
-    if (prefersReducedMotion) {
-      navigate(to);
-      return;
+    if (buttonRef.current) {
+      triggerBurst(buttonRef.current, () => navigate(to), 1800);
     }
-
-    // Compute burst origin at the button center for perfect alignment
-    const rect = buttonRef.current?.getBoundingClientRect();
-    if (rect) setOrigin({ x: rect.left + rect.width / 2, y: rect.top + rect.height / 2 });
-
-    // Generate burst bubbles
-    const count = 26;
-    const bubbles = Array.from({ length: count }, (_, i) => ({
-      id: i,
-      angle: (360 / count) * i + Math.random() * 8,
-      distance: 110 + Math.random() * 160,
-      size: 12 + Math.random() * 32,
-      duration: 0.55 + Math.random() * 0.45,
-    }));
-
-    setBurstBubbles(bubbles);
-    setShowBurst(true);
-
-    // Navigate after animation completes
-    navTimerRef.current = window.setTimeout(() => {
-      navigate(to);
-    }, 900);
   };
 
   return (
@@ -92,46 +50,7 @@ export default function BubbleBackButton({ to = '/' }: BubbleBackButtonProps) {
         <ArrowLeft className="h-6 w-6 text-white relative z-10" />
       </motion.button>
 
-      {/* Burst Animation */}
-      <AnimatePresence>
-        {showBurst && (
-          <div className="fixed inset-0 pointer-events-none z-40" aria-hidden="true">
-            {burstBubbles.map((bubble) => {
-              const radian = (bubble.angle * Math.PI) / 180;
-              const x = Math.cos(radian) * bubble.distance;
-              const y = Math.sin(radian) * bubble.distance;
-
-              return (
-                <motion.div
-                  key={bubble.id}
-                  className="absolute rounded-full"
-                  style={{
-                    left: origin.x,
-                    top: origin.y,
-                    width: bubble.size,
-                    height: bubble.size,
-                    background: `radial-gradient(circle at 30% 30%, hsl(var(--primary) / 0.8), hsl(var(--secondary) / 0.6))`,
-                    boxShadow: `0 0 ${bubble.size * 0.8}px hsl(var(--primary) / 0.6)`,
-                    willChange: 'transform, opacity',
-                  }}
-                  initial={{ x: 0, y: 0, scale: 0, opacity: 1 }}
-                  animate={{
-                    x,
-                    y,
-                    scale: [0, 1.15, 0],
-                    opacity: [1, 0.8, 0],
-                  }}
-                  transition={{
-                    duration: bubble.duration,
-                    ease: 'easeOut',
-                  }}
-                  exit={{ opacity: 0 }}
-                />
-              );
-            })}
-          </div>
-        )}
-      </AnimatePresence>
+      <BubbleBurst show={showBurst} origin={origin} bubbles={burstBubbles} />
     </>
   );
 }
